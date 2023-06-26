@@ -7,3 +7,7 @@ class Products(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+
+#PRODUCTS MODEL:
+#fileds:(name, id, code, price, is_active, min_count, description, image)

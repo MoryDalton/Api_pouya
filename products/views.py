@@ -10,8 +10,27 @@ class ShowProductsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        print(request.user)
-        print(request.auth)
+        # print(request.user)
+        # print(request.auth)
         data = Products.objects.all()
         serializer = ProductSerializer(data, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class CreateProductView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = ProductSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class EditProductsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request, id):
+
+        product = Products.objects.filter(id=id).first()
+        print(product)

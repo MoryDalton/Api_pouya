@@ -6,3 +6,9 @@ class ProductSerializer(ModelSerializer):
     class Meta:
         model = Products
         fields = '__all__'
+        
+        
+class CreateProductSerializer(ModelSerializer):
+    class Meta:
+        model = Products
+        fileds = '__all__'
