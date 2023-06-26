@@ -44,5 +44,8 @@ class LogOutUserView(APIView):
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
-    #create new token to user
+    # create new token to user
     serializer_class = CustomTokenObtainPairSerializer
+
+
+# TODO:update user password and detail
