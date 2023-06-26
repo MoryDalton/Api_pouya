@@ -18,7 +18,7 @@ class ShowProductsView(APIView):
 
 
 class CreateProductView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def post(self, request):
         serializer = ProductSerializer(data=request.data)
@@ -31,7 +31,8 @@ class CreateProductView(APIView):
 class EditProductsView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def put(self, request, id):
+    def put(self, request, code):
 
-        product = Products.objects.filter(id=id).first()
+        product = Products.objects.filter(code=code).first()
+        return Response({"p": product})
         print(product)
