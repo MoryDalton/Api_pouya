@@ -7,7 +7,7 @@ from products.models import Products
 
 
 class ShowProductsView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request):
         # print(request.user)
@@ -29,10 +29,17 @@ class CreateProductView(APIView):
 
 
 class EditProductsView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def put(self, request, code):
 
-        product = Products.objects.filter(code=code).first()
-        return Response({"p": product})
-        print(product)
+        try:
+            product = Products.objects.get(code=code)
+            data = request.data
+            serilizer = ProductSerializer(instance=product, data=data)
+            if serilizer.is_valid():
+                serilizer.save()
+                return Response(serilizer.data, status=status.HTTP_200_OK)
+        except Products.DoesNotExist:
+            return Response({"message": "products not found"})
+        return Response(serilizer.errors, status=status.HTTP_400_BAD_REQUEST)

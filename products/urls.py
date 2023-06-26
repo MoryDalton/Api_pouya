@@ -5,5 +5,5 @@ from products.views import ShowProductsView, CreateProductView, EditProductsView
 urlpatterns = [
     path("show/", ShowProductsView.as_view()),
     path("create/", CreateProductView.as_view()),
-    path("edit/<string:code>", EditProductsView.as_view())
+    path("edit/<str:code>", EditProductsView.as_view())
 ]
