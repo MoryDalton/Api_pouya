@@ -8,7 +8,7 @@ class Products(models.Model):
     is_active=models.BooleanField()
     min_count=models.IntegerField()
     desc=models.TextField()
-    image=models.CharField()
+    image=models.CharField(max_length=100)
 
     def __str__(self) -> str:
         return self.name
