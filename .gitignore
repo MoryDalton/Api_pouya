@@ -1,3 +1,6 @@
 .venv
 db.sqlite3
+testapipouya
+sample
 .gitignore
+restart.bat

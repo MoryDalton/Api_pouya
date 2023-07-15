@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
-
+import os
 from pathlib import Path
 from datetime import timedelta
 
@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-jv0^s3*ics#grhlh-v__aah8$ltf2k=!vqjrvsfjez05j4ev#(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-#ALLOWED_HOSTS = ['http://localhost']
+# ALLOWED_HOSTS = ['http://localhost']
 ALLOWED_HOSTS = ['*']
 
 
@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     'products',
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
-    'corsheaders'
+    'corsheaders',
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
@@ -131,6 +132,10 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# MEDIA
+
+MEDIA_URL = "sample/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "sample/")
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
@@ -143,7 +148,7 @@ AUTH_USER_MODEL = 'users.Users'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
 }
 
 
@@ -166,3 +171,25 @@ SIMPLE_JWT = {
 
 
 CORS_ORIGIN_ALLOW_ALL = True
+
+
+SWAGGER_SETTINGS = {
+    'DEFAULT_FIELD_INSPECTORS': [
+        'drf_yasg.inspectors.CamelCaseJSONFilter',
+        'drf_yasg.inspectors.InlineSerializerInspector',
+        'drf_yasg.inspectors.RelatedFieldInspector',
+        'drf_yasg.inspectors.ChoiceFieldInspector',
+        'drf_yasg.inspectors.FileFieldInspector',
+        'drf_yasg.inspectors.DictFieldInspector',
+        'drf_yasg.inspectors.SimpleFieldInspector',
+        'drf_yasg.inspectors.StringDefaultFieldInspector',
+    ],
+
+    'SECURITY_DEFINITIONS': {
+        "Auth token Format [token: JWT]": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}
