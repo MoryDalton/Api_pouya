@@ -16,17 +16,19 @@ from products.models import Products, ProductCategory
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
+from django.http import HttpRequest
 
-def paginator_next_previous_page(paginator, page):
+
+def paginator_next_previous_page(request, paginator, page):
     next = ''
     previous = ''
     all_pages = paginator.num_pages
     count = paginator.count
-    url = 'http://127.0.0.1:8000/api/products/show/'
+    url = HttpRequest.build_absolute_uri(request)
     if page < all_pages and page < all_pages:
-        next = f'{url}?page={page+1}'
+        next = HttpRequest.build_absolute_uri(request, f'?page={page+1}')
     if page > 1 and page <= all_pages:
-        previous = f'{url}?page={page-1}'
+        previous = HttpRequest.build_absolute_uri(request, f'?page={page-1}')
 
     return count, all_pages, next, previous
 
@@ -39,6 +41,7 @@ class ShowProductsView(APIView):
             'page', openapi.IN_QUERY, description="page number to view", type=openapi.TYPE_STRING)]
     )
     def get(self, request):
+        # print(request.build_absolute_uri())
         # print(request.user)
         # print(request.auth)
         data = Products.objects.all()
@@ -46,7 +49,7 @@ class ShowProductsView(APIView):
         try:
             page_number = int(request.GET.get("page", "1"))
 
-            page_data = paginator_next_previous_page(
+            page_data = paginator_next_previous_page(request,
                 my_paginator, page_number)
 
             if 0 < page_number <= page_data[1]:
@@ -179,3 +182,4 @@ class ProductCategoryEditView(APIView):
             data = [product.code for product in e.protected_objects]
             return Response({"message": e.args[0], "products": data}, status=status.HTTP_406_NOT_ACCEPTABLE)
         return Response(status=status.HTTP_204_NO_CONTENT)
+

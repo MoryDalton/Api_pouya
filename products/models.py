@@ -1,6 +1,7 @@
 import os
 
 from django.db import models
+from django.conf import settings
 
 
 class ProductCategory(models.Model):
@@ -14,14 +15,12 @@ class ProductCategory(models.Model):
 
 class Products(models.Model):
     name = models.CharField(max_length=100, null=False)
-    code = models.CharField(
-        primary_key=True, max_length=100, null=False, unique=True)
+    code = models.CharField(primary_key=True, max_length=100, null=False, unique=True)
     price = models.IntegerField(null=False)
     is_active = models.BooleanField(null=False)
     min_count = models.IntegerField(null=False)
     desc = models.TextField(null=False)
-    category = models.ForeignKey(
-        ProductCategory, on_delete=models.PROTECT, related_name="categoty")
+    category = models.ForeignKey(ProductCategory, on_delete=models.PROTECT, related_name="categoty")
     created_date = models.DateField(auto_now_add=True)
     update_date = models.DateField(auto_now=True)
 
@@ -32,6 +31,8 @@ class Products(models.Model):
 def upload_to(instance, filename):
 
     image_path = os.path.join(instance.product.code, filename)
+    # image_path = "static/sample/test/img.jpg"
+    # print(image_path)
     return image_path
 
 
