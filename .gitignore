@@ -1,6 +1,7 @@
-.venv
+.venv/
+.vscode/
 db.sqlite3
-testapipouya
-sample
-.gitignore
+testapipouya/
 restart.bat
+sms.py
+rest.test

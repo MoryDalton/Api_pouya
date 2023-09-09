@@ -37,6 +37,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/users/', include("users.urls")),
     path('api/products/', include('products.urls')),
+    path('api/cart/', include('cart.urls')),
 
     path('api/', schema_view.with_ui('swagger',
          cache_timeout=0), name='schema-swagger-ui'),
@@ -45,8 +46,7 @@ urlpatterns = [
 ]
 
 
-urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT, permission_class=[])
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
+urlpatterns += static("static/", document_root=settings.STATIC_ROOT)
+urlpatterns += static("media/", document_root=settings.MEDIA_ROOT)
+# print(urlpatterns[-1].pattern)
 # path(r'^%s(?P<path>.*)$' %settings.MEDIA_URL[1:], protected_serve, {'document_root': settings.MEDIA_ROOT}),
-

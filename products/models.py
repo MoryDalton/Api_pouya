@@ -1,13 +1,18 @@
 import os
 
 from django.db import models
-from django.conf import settings
+
+from django_jalali.db import models as jmodels
 
 
 class ProductCategory(models.Model):
     name = models.CharField(max_length=100, unique=True, null=False)
-    created_date = models.DateField(auto_now_add=True)
-    update_date = models.DateField(auto_now=True)
+    created_date = jmodels.jDateTimeField(auto_now_add=True)
+    update_date = jmodels.jDateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Category"
+        verbose_name_plural = "Category"
 
     def __str__(self) -> str:
         return self.name
@@ -20,9 +25,13 @@ class Products(models.Model):
     is_active = models.BooleanField(null=False)
     min_count = models.IntegerField(null=False)
     desc = models.TextField(null=False)
-    category = models.ForeignKey(ProductCategory, on_delete=models.PROTECT, related_name="categoty")
-    created_date = models.DateField(auto_now_add=True)
-    update_date = models.DateField(auto_now=True)
+    category = models.ForeignKey(ProductCategory, on_delete=models.PROTECT, related_name="products")
+    created_date = jmodels.jDateTimeField(auto_now_add=True)
+    update_date = jmodels.jDateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Products"
+        verbose_name_plural = "Products"
 
     def __str__(self) -> str:
         return f"{self.name}:{self.code}"
@@ -37,8 +46,11 @@ def upload_to(instance, filename):
 
 
 class ImageProduct(models.Model):
-    product = models.ForeignKey(
-        Products, on_delete=models.CASCADE, related_name="images")
+    product = models.ForeignKey(Products, on_delete=models.CASCADE, related_name="images")
     image = models.ImageField(upload_to=upload_to, null=True, blank=True)
-    created_date = models.DateField(auto_now_add=True)
-    update_date = models.DateField(auto_now=True)
+    created_date = jmodels.jDateTimeField(auto_now_add=True)
+    update_date = jmodels.jDateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Images"
+        verbose_name_plural = "Images"

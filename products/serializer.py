@@ -8,6 +8,8 @@ from rest_framework.serializers import ModelSerializer
 
 from products.models import Products, ImageProduct, ProductCategory
 
+from django_jalali.serializers.serializerfield import  JDateTimeField
+
 
 class ImageProductSerializer(ModelSerializer):
     class Meta:
@@ -21,11 +23,12 @@ class ProductSerializer(ModelSerializer):
     images = ImageProductSerializer(many=True, read_only=True)
     uploaded_images = serializers.ListField(child=serializers.ImageField(
     ), required=False, write_only=True, default=["default.jpg"])
-
+    created_date=JDateTimeField(read_only=True)
+    
     class Meta:
         model = Products
         fields = ("name", "code", "price", "is_active",
-                  "min_count", "desc", "category", "images", "uploaded_images")
+                  "min_count", "desc", "category", "created_date", "images", "uploaded_images")
 
     def create(self, validated_data):
         uploaded_images = validated_data.pop("uploaded_images")
@@ -69,3 +72,17 @@ class ProductCategorySerializer(ModelSerializer):
     class Meta:
         model = ProductCategory
         fields = ("id", "name")
+
+
+class SimpleProductShowSerializer(ModelSerializer):
+    class Meta:
+        model = Products
+        fields = ("name", "code", "price", "is_active", "min_count", "desc")
+
+
+# class OneCategorySerializer(ModelSerializer):
+#     products = SimpleProductShowSerializer(many=True)
+
+#     class Meta:
+#         model = ProductCategory
+#         fields = ("id", "name", "products")
