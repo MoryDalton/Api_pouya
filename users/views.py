@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from users.models import Users, ValidNumbers, EmailVerify
+from users.models import Users, ValidNumbers
 from users.serializer import (CreateUserSerializer, LogOutUserSerializer, EditUserSerializer,
                               UserShowSerializer, UserChangePasswordSerializer, ValidNumbersSerializer,
                               ValidNumberEditSerializer)
@@ -17,7 +17,7 @@ from users.serializer import CustomTokenObtainPairSerializer
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
-import email_verify, sms
+import sms
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -25,8 +25,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
     return {
-        'refresh': str(refresh),
-        'access': str(refresh.access_token),
+        'access': str(refresh.access_token)
     }
 
 
@@ -56,7 +55,7 @@ class CreateUserShow(APIView):
     #         return Response(serializer.data, status=status.HTTP_201_CREATED)
     #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-#----------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 
     # create user with sms:
     @swagger_auto_schema(request_body=CreateUserSerializer, manual_parameters=[openapi.Parameter(
@@ -69,7 +68,8 @@ class CreateUserShow(APIView):
 
             # if code is in parameters:
             if code:
-                response = sms.check_code(phone=serializer.validated_data["phone"], code=code)
+                response = sms.check_code(
+                    phone=serializer.validated_data["phone"], code=code)
 
                 if response[0]:
                     serializer.save()
@@ -77,10 +77,12 @@ class CreateUserShow(APIView):
                 return Response({"message": response[1]}, status=status.HTTP_400_BAD_REQUEST)
 
             # first time call create user:
-            res = sms.check_before_send(phone=serializer.validated_data["phone"])
+            res = sms.check_before_send(
+                phone=serializer.validated_data["phone"])
 
             if res:
-                t_send_email = Process(target=sms.send_message, args=(serializer.validated_data["phone"],))
+                t_send_email = Process(target=sms.send_message, args=(
+                    serializer.validated_data["phone"],))
                 t_send_email.start()
                 return Response({"message": "sms sent"}, status=status.HTTP_200_OK)
 
@@ -158,9 +160,11 @@ class CreateUserShow(APIView):
 
     #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-#-----------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------
 
 # show one user
+
+
 class ShowOneUserView(APIView):
     permission_classes = [IsAdminUser]
 
@@ -226,17 +230,18 @@ class UserChangePasswordView(APIView):
 class UserForgetPasswordView(APIView):
     permission_classes = [AllowAny,]
 
-    @swagger_auto_schema(manual_parameters=[openapi.Parameter('code', openapi.IN_QUERY, description="email code", type=openapi.TYPE_STRING)])
-    def get(self, request, email):
+    @swagger_auto_schema(manual_parameters=[openapi.Parameter('code', openapi.IN_QUERY, description="code", type=openapi.TYPE_STRING)])
+    def get(self, request, phone):
         # data={"phone": "09xxxxxxxxx"}
 
         try:
-            user = Users.objects.get(email=email)
+            user = Users.objects.get(phone=phone, is_active=True)
             # TODO:check validation by sms
+
             # if code in parameters:-> check code and set password:
             code = request.GET.get("code")
             if code:
-                response = email_verify.check_code(email=email, code=code)
+                response = sms.check_code(phone=phone, code=code)
                 if response[0]:
                     # serializer = UserChangePasswordSerializer(instance=user, data=request.data)
 
@@ -252,16 +257,15 @@ class UserForgetPasswordView(APIView):
                 return Response({"message": response[1]}, status=status.HTTP_400_BAD_REQUEST)
 
             # with no parameters:-> check for send sms:
-            res = email_verify.check_before_send(email=email)
+            res = sms.check_before_send(phone=phone)
             if res:
-                t_send_email = Thread(
-                    target=email_verify.send_email, args=(email,))
+                t_send_email = Process(target=sms.send_message, args=(phone,))
                 t_send_email.start()
-                return Response({"message": "email sent"}, status=status.HTTP_200_OK)
+                return Response({"message": "sms sent"}, status=status.HTTP_200_OK)
             return Response({"message": "please try after 2 minutes."}, status=status.HTTP_400_BAD_REQUEST)
 
         except:
-            return Response({"message": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "User not found or not active."}, status=status.HTTP_404_NOT_FOUND)
 
         # serializer = ForgetPasswordSerializser(data=request.data)
         # print(serializer)
