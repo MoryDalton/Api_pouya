@@ -1,5 +1,5 @@
 from django.contrib import admin
-from users.models import Users, ValidNumbers, EmailVerify
+from users.models import Users, ValidNumbers, EmailVerify, Sms
 
 from django.contrib.auth.admin import UserAdmin
 from django.forms import TextInput, Textarea, CharField
@@ -11,7 +11,7 @@ class UserAdminConfig(UserAdmin):
     search_fields = ('phone', 'family', 'email', 'store', 'created_date')
     list_filter = ('phone', 'email', 'created_date', 'is_active', 'is_staff')
     ordering = ('-created_date',)
-    list_display = ('phone', 'name', 'family', 'email', 'store', 'created_date', 'is_superuser', 
+    list_display = ('phone', 'name', 'family', 'email', 'store', 'created_date', 'is_superuser',
                     'is_active', 'is_staff')
     fieldsets = (
         (None, {'fields': ('phone', 'name', 'family', 'email', 'password')}),
@@ -38,13 +38,14 @@ class ValidNumbersAdminConfig(admin.ModelAdmin):
     list_display = ('id', 'phone', 'name', 'created_date')
 
 
-# class SmsAdminConfig(admin.ModelAdmin):
-#     model = Sms
+class SmsAdminConfig(admin.ModelAdmin):
+    model = Sms
 
-#     search_fields = ('id', 'phone', 'code', 'created_date')
-#     list_filter = ('id', 'phone', 'code', 'created_date')
-#     ordering = ('-created_date',)
-#     list_display = ('id', 'phone', 'code', 'created_date')
+    search_fields = ('id', 'phone', 'code', 'created_date')
+    list_filter = ('id', 'phone', 'code', 'created_date')
+    ordering = ('-created_date',)
+    list_display = ('id', 'phone', 'code', 'created_date')
+
 
 class EmailVerifyAdminConfig(admin.ModelAdmin):
     model = EmailVerify
@@ -58,4 +59,4 @@ class EmailVerifyAdminConfig(admin.ModelAdmin):
 admin.site.register(Users, UserAdminConfig)
 admin.site.register(ValidNumbers, ValidNumbersAdminConfig)
 admin.site.register(EmailVerify, EmailVerifyAdminConfig)
-# admin.site.register(Sms, SmsAdminConfig)
+admin.site.register(Sms, SmsAdminConfig)

@@ -52,24 +52,25 @@ class Users(AbstractBaseUser, PermissionsMixin):
 
 
 # model for sms numbers
-# class Sms(models.Model):
-#     phone = models.CharField(max_length=11, null=False)
-#     code = models.CharField(max_length=4, null=False)
-#     created_date = models.DateTimeField(auto_now_add=True)
-#     # expire_date = models.DateTimeField(editable=False, default=datetime.utcnow()+timedelta(minutes=2))
+class Sms(models.Model):
+    phone = models.CharField(max_length=11, null=False)
+    code = models.CharField(max_length=4, null=False)
+    created_date = models.DateTimeField(auto_now_add=True)
 
-#     class Meta:
-#         verbose_name = "Sms"
-#         verbose_name_plural = "Sms"
+    class Meta:
+        verbose_name = "Sms"
+        verbose_name_plural = "Sms"
 
 
 # model for email verify:
 class EmailVerify(models.Model):
-    email = models.EmailField(null=False, blank=True)
+    email = models.EmailField(null=False)
     code = models.CharField(max_length=4, null=False)
     created_date = models.DateTimeField(auto_now_add=True)
 
 # valid numbers model
+
+
 class ValidNumbers(models.Model):
     phone = models.CharField(max_length=11, unique=True, null=False)
     name = models.CharField(max_length=255, null=False)

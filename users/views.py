@@ -17,7 +17,7 @@ from users.serializer import CustomTokenObtainPairSerializer
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
-import email_verify
+import email_verify, sms
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -56,36 +56,37 @@ class CreateUserShow(APIView):
     #         return Response(serializer.data, status=status.HTTP_201_CREATED)
     #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+#----------------------------------------------------------------------------------------------------------------------
+
     # create user with sms:
-    # @swagger_auto_schema(request_body=CreateUserSerializer, manual_parameters=[openapi.Parameter(
-    #     'code', openapi.IN_QUERY, description="sms code", type=openapi.TYPE_STRING)])
-    # def post(self, request):
+    @swagger_auto_schema(request_body=CreateUserSerializer, manual_parameters=[openapi.Parameter(
+        'code', openapi.IN_QUERY, description="code", type=openapi.TYPE_STRING)])
+    def post(self, request):
 
-    #     try:
-    #         phone = request.data["phone"]
-    #     except:
-    #         return Response({"phone": ["This field is required."]}, status=status.HTTP_400_BAD_REQUEST)
+        code = request.GET.get("code")
+        serializer = CreateUserSerializer(data=request.data)
+        if serializer.is_valid():
 
-    #     if Users.objects.filter(phone=phone):
-    #         # user already exsist
-    #         return Response({"phone": ["Users with this phone already exists."]}, status=status.HTTP_400_BAD_REQUEST)
+            # if code is in parameters:
+            if code:
+                response = sms.check_code(phone=serializer.validated_data["phone"], code=code)
 
-    #     code = request.GET.get("code")
-    #     if code:
-    #         # check code sms
-    #         response = sms.check_sms(phone, code)
-    #         # print(response)
-    #         if response[0]:
-    #             # create new user
-    #             serializer = CreateUserSerializer(data=request.data)
-    #             if serializer.is_valid():
-    #                 serializer.save()
-    #                 return Response(serializer.data, status=status.HTTP_201_CREATED)
-    #             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    #         return Response({"message": response[1]}, status=status.HTTP_400_BAD_REQUEST)
+                if response[0]:
+                    serializer.save()
+                    return Response(serializer.data, status=status.HTTP_201_CREATED)
+                return Response({"message": response[1]}, status=status.HTTP_400_BAD_REQUEST)
 
-    #     print("no code")
-    #     return Response(sms.send_sms(phone), status=status.HTTP_200_OK)
+            # first time call create user:
+            res = sms.check_before_send(phone=serializer.validated_data["phone"])
+
+            if res:
+                t_send_email = Thread(target=sms.send_message, args=(serializer.validated_data["phone"],))
+                t_send_email.start()
+                return Response({"message": "sms sent"}, status=status.HTTP_200_OK)
+
+            return Response({"message": "please try after 2 minutes."}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # -----------------------------------------------------------------------------------------------------------
 
@@ -125,38 +126,39 @@ class CreateUserShow(APIView):
 # ----------------------------------------------------------------------------------------------------------------------------------------
 
     # create user with email BUT, first check serializer:
-    @swagger_auto_schema(request_body=CreateUserSerializer, manual_parameters=[openapi.Parameter(
-        'code', openapi.IN_QUERY, description="email code", type=openapi.TYPE_STRING)])
-    def post(self, request):
+    # @swagger_auto_schema(request_body=CreateUserSerializer, manual_parameters=[openapi.Parameter(
+    #     'code', openapi.IN_QUERY, description="email code", type=openapi.TYPE_STRING)])
+    # def post(self, request):
 
-        code = request.GET.get("code")
-        serializer = CreateUserSerializer(data=request.data)
-        if serializer.is_valid():
+    #     code = request.GET.get("code")
+    #     serializer = CreateUserSerializer(data=request.data)
+    #     if serializer.is_valid():
 
-            # if code is in parameters:
-            if code:
-                response = email_verify.check_code(
-                    serializer.validated_data["email"], code)
+    #         # if code is in parameters:
+    #         if code:
+    #             response = email_verify.check_code(
+    #                 serializer.validated_data["email"], code)
 
-                if response[0]:
-                    serializer.save()
-                    return Response(serializer.data, status=status.HTTP_201_CREATED)
-                return Response({"message": response[1]}, status=status.HTTP_400_BAD_REQUEST)
+    #             if response[0]:
+    #                 serializer.save()
+    #                 return Response(serializer.data, status=status.HTTP_201_CREATED)
+    #             return Response({"message": response[1]}, status=status.HTTP_400_BAD_REQUEST)
 
-            # first time call create user:
-            res = email_verify.check_before_send(
-                email=serializer.validated_data["email"])
+    #         # first time call create user:
+    #         res = email_verify.check_before_send(
+    #             email=serializer.validated_data["email"])
 
-            if res:
-                t_send_email = Thread(target=email_verify.send_email, args=(
-                    serializer.validated_data["email"],))
-                t_send_email.start()
-                return Response({"message": "email sent"}, status=status.HTTP_200_OK)
+    #         if res:
+    #             t_send_email = Thread(target=email_verify.send_email, args=(
+    #                 serializer.validated_data["email"],))
+    #             t_send_email.start()
+    #             return Response({"message": "email sent"}, status=status.HTTP_200_OK)
 
-            return Response({"message": "please try after 2 minutes."}, status=status.HTTP_400_BAD_REQUEST)
+    #         return Response({"message": "please try after 2 minutes."}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+#-----------------------------------------------------------------------------------------------
 
 # show one user
 class ShowOneUserView(APIView):

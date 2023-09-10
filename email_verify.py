@@ -1,5 +1,4 @@
 from random import randint
-from threading import Thread
 
 from django.utils.timezone import now, timedelta
 
@@ -53,18 +52,14 @@ def check_code(email, code):
 
 
 # send email to user
-def send_email(email: str):
+def send_message(email: str):
 
     # random code
     code = randint(1000, 9999)
 
     # save code in DB
     EmailVerify.objects.create(email=email, code=code)
-    t1 = Thread(target=send_mail_thread, args=(email, code))
-    t1.start()
 
-
-def send_mail_thread(email: str, code: str):
     text = f"""\
 <html>
   <head></head>
@@ -86,24 +81,14 @@ def send_mail_thread(email: str, code: str):
 """
 
     # setup vairables:
-    # HOST = "smtp.gmail.com"
-    # PORT = 465
-    # ME = "daltonmory@gmail.com"
-    # PASSWORD = "lxfdjhdlfqqmpuds"
-
-    HOST = keys.EMAIL_HOST
-    PORT = keys.EMAIL_PORT
-    ME = keys.EMAIL_FROM
-    PASSWORD = keys.EMAIL_PASSWORD
-
     msg = EmailMessage()
     msg["SUBJECT"] = "پیام آزمایشی از پایتون"
-    msg["FROM"] = ME
+    msg["FROM"] = keys.EMAIL_FROM
     msg["TO"] = email
     msg.set_content(text, subtype='html')
 
-    with SMTP_SSL(host=HOST, port=PORT) as connection:
-        connection.login(user=ME, password=PASSWORD)
+    with SMTP_SSL(host=keys.EMAIL_HOST, port=keys.EMAIL_PORT) as connection:
+        connection.login(user=keys.EMAIL_FROM, password=keys.EMAIL_PASSWORD)
         connection.send_message(msg=msg)
         connection.quit()
         del msg["TO"]
