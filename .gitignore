@@ -1,3 +1,5 @@
+.gitignore
+__pycache__
 .venv/
 .vscode/
 db.sqlite3
@@ -5,3 +7,4 @@ testapipouya/
 restart.bat
 sms.py
 rest.test
+keys.py

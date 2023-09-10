@@ -1,4 +1,5 @@
 from random import randint
+from threading import Thread
 
 from django.utils.timezone import now, timedelta
 
@@ -6,6 +7,7 @@ from smtplib import SMTP_SSL
 from email.message import EmailMessage
 
 from users.models import EmailVerify
+import keys
 
 
 # check email before send:
@@ -58,7 +60,11 @@ def send_email(email: str):
 
     # save code in DB
     EmailVerify.objects.create(email=email, code=code)
+    t1 = Thread(target=send_mail_thread, args=(email, code))
+    t1.start()
 
+
+def send_mail_thread(email: str, code: str):
     text = f"""\
 <html>
   <head></head>
@@ -80,10 +86,15 @@ def send_email(email: str):
 """
 
     # setup vairables:
-    HOST = "smtp.gmail.com"
-    PORT = 465
-    ME = "daltonmory@gmail.com"
-    PASSWORD = "lxfdjhdlfqqmpuds"
+    # HOST = "smtp.gmail.com"
+    # PORT = 465
+    # ME = "daltonmory@gmail.com"
+    # PASSWORD = "lxfdjhdlfqqmpuds"
+
+    HOST = keys.EMAIL_HOST
+    PORT = keys.EMAIL_PORT
+    ME = keys.EMAIL_FROM
+    PASSWORD = keys.EMAIL_PASSWORD
 
     msg = EmailMessage()
     msg["SUBJECT"] = "پیام آزمایشی از پایتون"
