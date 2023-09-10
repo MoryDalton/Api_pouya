@@ -1,4 +1,4 @@
-from threading import Thread
+from multiprocessing import Process
 
 from rest_framework import status
 from rest_framework.response import Response
@@ -80,7 +80,7 @@ class CreateUserShow(APIView):
             res = sms.check_before_send(phone=serializer.validated_data["phone"])
 
             if res:
-                t_send_email = Thread(target=sms.send_message, args=(serializer.validated_data["phone"],))
+                t_send_email = Process(target=sms.send_message, args=(serializer.validated_data["phone"],))
                 t_send_email.start()
                 return Response({"message": "sms sent"}, status=status.HTTP_200_OK)
 
@@ -149,7 +149,7 @@ class CreateUserShow(APIView):
     #             email=serializer.validated_data["email"])
 
     #         if res:
-    #             t_send_email = Thread(target=email_verify.send_email, args=(
+    #             t_send_email = Process(target=email_verify.send_email, args=(
     #                 serializer.validated_data["email"],))
     #             t_send_email.start()
     #             return Response({"message": "email sent"}, status=status.HTTP_200_OK)
