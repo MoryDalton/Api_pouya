@@ -25,8 +25,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
     return {
-        'refresh': str(refresh),
-        'access': str(refresh.access_token),
+        'access': str(refresh.access_token)
     }
 
 
@@ -229,7 +228,7 @@ class UserForgetPasswordView(APIView):
         # data={"phone": "09xxxxxxxxx"}
 
         try:
-            user = Users.objects.get(email=email)
+            user = Users.objects.get(email=email, is_active=True)
             # TODO:check validation by sms
             # if code in parameters:-> check code and set password:
             code = request.GET.get("code")
@@ -252,7 +251,7 @@ class UserForgetPasswordView(APIView):
             # with no parameters:-> check for send sms:
             res = email_verify.check_before_send(email=email)
             if res:
-                t_send_email = Thread(
+                t_send_email = Process(
                     target=email_verify.send_email, args=(email,))
                 t_send_email.start()
                 return Response({"message": "email sent"}, status=status.HTTP_200_OK)
