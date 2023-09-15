@@ -1,4 +1,6 @@
+from rest_framework.exceptions import APIException
 from rest_framework import serializers
+from rest_framework import status
 from users.models import Users
 from products.models import Products
 from cart.models import Cart, Items
@@ -6,6 +8,18 @@ from users.serializer import CreateUserSerializer
 
 from django_jalali.serializers.serializerfield import JDateTimeField
 
+
+class CustomValidation(APIException):
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    default_detail = "A server error occurred."
+
+    def __init__(self, detail, field, st, status_code):
+        if status_code is not None:
+            self.status_code = status_code
+        if detail is not None:
+            self.detail = {"isStatus": st, field: detail}
+        else:
+            self.detail = {"isStatus": st, field: self.default_detail}
 
 class SimpleCartProductSerializer(serializers.ModelSerializer):
     class Meta:
@@ -53,7 +67,7 @@ class CartSerializer(serializers.ModelSerializer):
         try:
             user = Users.objects.get(phone=phone)
         except:
-            raise serializers.ValidationError("User not found")
+            raise CustomValidation("User not found", "detail", False, status_code=status.HTTP_401_UNAUTHORIZED)
 
         try:
             for item in items:
@@ -61,10 +75,10 @@ class CartSerializer(serializers.ModelSerializer):
                 products.append({"product": product, "quantity": item["quantity"]})
 
         except KeyError:
-            raise serializers.ValidationError("invalid data")
+            raise CustomValidation("invalid data", "detail", False, status_code=status.HTTP_401_UNAUTHORIZED)
 
         except:
-            raise serializers.ValidationError(f"Product {item['product']} not found or unavailable")
+            raise CustomValidation(f"Product {item['product']} not found or unavailable", "detail", False, status_code=status.HTTP_401_UNAUTHORIZED)
 
         validated_date = {
             "user": user,

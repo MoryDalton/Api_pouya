@@ -1,7 +1,7 @@
 from rest_framework.exceptions import APIException
 from rest_framework import status
 from rest_framework import serializers
-from rest_framework.serializers import ModelSerializer, Serializer, CharField, EmailField
+from rest_framework.serializers import ModelSerializer, Serializer, CharField
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from users.models import Users, ValidNumbers
@@ -19,7 +19,7 @@ class CustomValidation(APIException):
         if detail is not None:
             self.detail = {"isStatus": st, field: detail}
         else:
-            self.detail = {"isStatus": st, field: detail}
+            self.detail = {"isStatus": st, field: self.default_detail}
 
 
 class UserShowSerializer(ModelSerializer):
