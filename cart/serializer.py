@@ -53,7 +53,7 @@ class CartSerializer(serializers.ModelSerializer):
         try:
             user = Users.objects.get(phone=phone)
         except:
-            raise serializers.ValidationError({"detail": "User not found"})
+            raise serializers.ValidationError("User not found")
 
         try:
             for item in items:
@@ -61,10 +61,10 @@ class CartSerializer(serializers.ModelSerializer):
                 products.append({"product": product, "quantity": item["quantity"]})
 
         except KeyError:
-            raise serializers.ValidationError({"detail": "invalid data"})
+            raise serializers.ValidationError("invalid data")
 
         except:
-            raise serializers.ValidationError({"detail": f"Product {item['product']} not found or unavailable"})
+            raise serializers.ValidationError(f"Product {item['product']} not found or unavailable")
 
         validated_date = {
             "user": user,

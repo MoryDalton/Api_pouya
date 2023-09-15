@@ -13,13 +13,13 @@ class CustomValidation(APIException):
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
     default_detail = "A server error occurred."
 
-    def __init__(self, detail, field, st, status_code):
+    def __init__(self, detail, status_code):
         if status_code is not None:
             self.status_code = status_code
         if detail is not None:
-            self.detail = {"status": st, field: detail}
+            self.detail = detail
         else:
-            self.detail = {"status": st, "detail": self.default_detail}
+            self.detail = self.default_detail
 
 
 class UserShowSerializer(ModelSerializer):
@@ -99,11 +99,10 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             user = Users.objects.get(phone=validated_data["phone"])
 
         except Users.DoesNotExist:
-            raise CustomValidation("No active account found with the given credentials",
-                                   "detail", "ERROR", status_code=status.HTTP_401_UNAUTHORIZED)
+            raise CustomValidation("No active account found with the given credentials", status_code=status.HTTP_401_UNAUTHORIZED)
 
         if user.is_active:
-            d = {"status": "OK"}
+            d = {"isStatus": True}
             data = super(CustomTokenObtainPairSerializer,
                          self).validate(validated_data)
             # find user data
@@ -112,8 +111,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             d.update({"detail": {"user": serializer.data, "data": data}})
             return d
 
-        raise CustomValidation("No active account found with the given credentials",
-                               "detail", "ERROR", status_code=status.HTTP_401_UNAUTHORIZED)
+        raise CustomValidation("No active account found with the given credentials", status_code=status.HTTP_401_UNAUTHORIZED)
 
 
 class ValidNumbersSerializer(ModelSerializer):
