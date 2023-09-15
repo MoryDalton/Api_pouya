@@ -38,14 +38,14 @@ def check_code(phone, code):
 
         # if time expired:
         else:
-            result = (False, "expire time")
+            result = (False, "time expired")
 
         # delete object from db
         user.delete()
 
     # if phone not found or code is not correct:
     except:
-        result = (False, "code not valid")
+        result = (False, "code invalid")
 
     return result
 

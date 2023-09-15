@@ -5,6 +5,7 @@ from django.db import models
 from django_jalali.db import models as jmodels
 
 
+# category model
 class ProductCategory(models.Model):
     name = models.CharField(max_length=100, unique=True, null=False)
     created_date = jmodels.jDateTimeField(auto_now_add=True)
@@ -18,6 +19,7 @@ class ProductCategory(models.Model):
         return self.name
 
 
+# products model
 class Products(models.Model):
     name = models.CharField(max_length=100, null=False)
     code = models.CharField(primary_key=True, max_length=100, null=False, unique=True)
@@ -37,16 +39,15 @@ class Products(models.Model):
         return f"{self.name}:{self.code}"
 
 
+# path to save images
 def upload_to(instance, filename):
-
-    image_path = os.path.join(instance.product.code, filename)
-    # image_path = "static/sample/test/img.jpg"
-    # print(image_path)
-    return image_path
+    return os.path.join(instance.product.code, filename)
 
 
+# image model
 class ImageProduct(models.Model):
-    product = models.ForeignKey(Products, on_delete=models.CASCADE, related_name="images")
+    product = models.ForeignKey(
+        Products, on_delete=models.CASCADE, related_name="images")
     image = models.ImageField(upload_to=upload_to, null=True, blank=True)
     created_date = jmodels.jDateTimeField(auto_now_add=True)
     update_date = jmodels.jDateTimeField(auto_now=True)

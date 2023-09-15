@@ -11,15 +11,15 @@ from django_jalali.serializers.serializerfield import JDateTimeField
 
 class CustomValidation(APIException):
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-    default_detail = 'A server error occurred.'
+    default_detail = "A server error occurred."
 
-    def __init__(self, detail, field, status_code):
+    def __init__(self, detail, field, st, status_code):
         if status_code is not None:
             self.status_code = status_code
         if detail is not None:
-            self.detail = {field: detail}
+            self.detail = {"status": st, field: detail}
         else:
-            self.detail = {'detail': self.default_detail}
+            self.detail = {"status": st, "detail": self.default_detail}
 
 
 class UserShowSerializer(ModelSerializer):
@@ -75,29 +75,11 @@ class EditUserSerializer(ModelSerializer):
 
 
 class UserChangePasswordSerializer(ModelSerializer):
-    # old_password = CharField(write_only=True, required=True)
     password = serializers.CharField(write_only=True, required=True)
-    # password2 = serializers.CharField(write_only=True, required=True)
 
     class Meta:
         model = Users
-        # fields = ("old_password", "password", "password2")
         fields = ("password",)
-
-    # def validate(self, data):
-    #     if data["password"] != data["password2"]:
-    #         raise serializers.ValidationError(
-    #             {"message": "password not match"})
-
-    #     return data
-
-    # def validate_old_password(self, value):
-    #     print(self.instance)
-    #     user=self.instance
-    #     if not user.check_password(value):
-    #         raise serializers.ValidationError({"message": "old password is not correct"})
-
-    #     return value
 
     def update(self, instance, validated_data):
         instance.set_password(validated_data["password"])
@@ -109,8 +91,6 @@ class LogOutUserSerializer(Serializer):
     refresh = CharField(max_length=230)
 
 
-# from rest_framework_simplejwt.views import TokenObtainPairView
-
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
     def validate(self, validated_data):
@@ -120,21 +100,20 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         except Users.DoesNotExist:
             raise CustomValidation("No active account found with the given credentials",
-                                   "detail", status_code=status.HTTP_401_UNAUTHORIZED)
+                                   "detail", "ERROR", status_code=status.HTTP_401_UNAUTHORIZED)
 
         if user.is_active:
-            d = {"status": "ok"}
+            d = {"status": "OK"}
             data = super(CustomTokenObtainPairSerializer,
                          self).validate(validated_data)
             # find user data
             serializer = UserShowSerializer(user)
             # Custom data you want to include
-            d.update({"user": serializer.data})
-            d.update({"data": data})
+            d.update({"detail": {"user": serializer.data, "data": data}})
             return d
 
         raise CustomValidation("No active account found with the given credentials",
-                               "detail", status_code=status.HTTP_401_UNAUTHORIZED)
+                               "detail", "ERROR", status_code=status.HTTP_401_UNAUTHORIZED)
 
 
 class ValidNumbersSerializer(ModelSerializer):

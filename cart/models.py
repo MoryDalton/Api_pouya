@@ -7,15 +7,12 @@ from products.models import Products
 from django_jalali.db import models as jmodels
 
 
-# Create your models here.
-
-
+# cart model
 class Cart(models.Model):
-    user = models.ForeignKey(Users, to_field="phone", on_delete=models.CASCADE, related_name="cart")
+    user = models.ForeignKey(Users, to_field="phone",on_delete=models.CASCADE, related_name="cart")
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, unique=True)
     created_date = jmodels.jDateTimeField(auto_now_add=True)
     done = models.BooleanField(default=False)
-    # items = models.ForeignKey(Items, on_delete=models.DO_NOTHING, related_name="items")
 
     class Meta:
         verbose_name = "Carts"
@@ -25,11 +22,10 @@ class Cart(models.Model):
         return f'{self.user.phone}: {self.id}'
 
 
+# items in cart model
 class Items(models.Model):
-    cart = models.ForeignKey(
-        Cart, on_delete=models.CASCADE, related_name="item")
-    product = models.ForeignKey(
-        Products, on_delete=models.PROTECT, related_name="product")
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name="item")
+    product = models.ForeignKey(Products, on_delete=models.PROTECT, related_name="product")
     quantity = models.IntegerField(default=0)
 
     class Meta:

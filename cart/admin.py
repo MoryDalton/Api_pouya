@@ -16,7 +16,6 @@ class ItemAdminConfig(admin.ModelAdmin):
 
     search_fields = ('id', 'cart', 'product', 'quantity')
     list_filter = ('id', 'cart', 'product', 'quantity')
-    # ordering = ('-created_date',)
     list_display = ('id', 'cart', 'product', 'quantity')
 
 

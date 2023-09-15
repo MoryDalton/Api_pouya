@@ -1,6 +1,5 @@
 import os
 import shutil
-# from django.contrib.auth.admin import UserAdmin
 
 from django.conf import settings
 from django.core.paginator import Paginator
@@ -18,6 +17,7 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
 from django.http import HttpRequest
+from test_response import response_OK, response_ERROR
 
 
 def paginator_next_previous_page(request, paginator, page):
@@ -56,7 +56,7 @@ class ShowProductsView(APIView):
         try:
             page_limit = int(request.GET.get("limit", "10"))
         except:
-            return Response({"message": "wrong type limit"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(response_ERROR("wrong type limit"), status=status.HTTP_400_BAD_REQUEST)
         my_paginator = Paginator(data, page_limit)
         try:
             page_number = int(request.GET.get("page", "1"))
@@ -75,10 +75,10 @@ class ShowProductsView(APIView):
                     "previous_page": page_data[3],
                     "result": serializer.data
                 }
-                return Response(return_data, status=status.HTTP_200_OK)
-            return Response(status=status.HTTP_404_NOT_FOUND)
+                return Response(response_OK(return_data), status=status.HTTP_200_OK)
+            return Response(response_ERROR("not found"), status=status.HTTP_404_NOT_FOUND)
         except:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            return Response(response_ERROR("not found"), status=status.HTTP_404_NOT_FOUND)
 
 
 # CREATE PRODUCT
@@ -90,8 +90,8 @@ class CreateProductView(APIView):
         serializer = ProductSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(response_OK("Product created"), status=status.HTTP_201_CREATED)
+        return Response(response_ERROR(serializer.errors), status=status.HTTP_400_BAD_REQUEST)
 
 
 # EDIT PRODUCT
@@ -103,9 +103,9 @@ class EditProductsView(APIView):
         try:
             product = Products.objects.get(code=code)
             serializer = EditProductSerializer(product)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(response_OK(serializer.data), status=status.HTTP_200_OK)
         except Products.DoesNotExist:
-            return Response({"message": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(response_ERROR("Product not found"), status=status.HTTP_404_NOT_FOUND)
 
     @swagger_auto_schema(request_body=EditProductSerializer)
     def put(self, request, code):
@@ -113,13 +113,13 @@ class EditProductsView(APIView):
         try:
             product = Products.objects.get(code=code)
             data = request.data
-            serilizer = EditProductSerializer(instance=product, data=data)
-            if serilizer.is_valid():
-                serilizer.save()
-                return Response(serilizer.data, status=status.HTTP_200_OK)
+            serializer = EditProductSerializer(instance=product, data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(response_OK(serializer.data), status=status.HTTP_200_OK)
         except Products.DoesNotExist:
-            return Response({"message": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
-        return Response(serilizer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(response_ERROR("Product not found"), status=status.HTTP_404_NOT_FOUND)
+        return Response(response_ERROR(serializer.errors), status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, code):
 
@@ -127,14 +127,13 @@ class EditProductsView(APIView):
             product = Products.objects.get(code=code)
             product.delete()
             images_path = os.path.join(settings.MEDIA_ROOT, code)
-            print(images_path)
 
             if os.path.exists(images_path):
                 shutil.rmtree(images_path)
 
-            return Response({"message": "Product deleted"}, status=status.HTTP_204_NO_CONTENT)
+            return Response(response_ERROR("Product deleted"), status=status.HTTP_204_NO_CONTENT)
         except:
-            return Response({"message": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(response_ERROR("Product not found"), status=status.HTTP_404_NOT_FOUND)
 
 
 # category create and show:
@@ -145,7 +144,7 @@ class ProductCategoryView(APIView):
     def get(self, request):
         category = ProductCategory.objects.all()
         serializer = ProductCategorySerializer(category, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(response_OK(serializer.data), status=status.HTTP_200_OK)
 
     # create a new category
     @swagger_auto_schema(request_body=ProductCategorySerializer)
@@ -154,9 +153,9 @@ class ProductCategoryView(APIView):
             serializer = ProductCategorySerializer(data=request.data)
             if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        return Response({"detail": "You do not have permission to perform this action."}, status=status.HTTP_403_FORBIDDEN)
+                return Response(response_OK(serializer.data), status=status.HTTP_201_CREATED)
+            return Response(response_ERROR(serializer.errors), status=status.HTTP_400_BAD_REQUEST)
+        return Response(response_ERROR("You do not have permission to perform this action."), status=status.HTTP_403_FORBIDDEN)
 
 
 # category edit and delete:
@@ -173,9 +172,9 @@ class ProductCategoryEditView(APIView):
 
         if data:
             serializer = SimpleProductShowSerializer(data, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(response_OK(serializer.data), status=status.HTTP_200_OK)
 
-        return Response({"message": "Category not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(response_ERROR("Category not found"), status=status.HTTP_404_NOT_FOUND)
 
     # edit category by id
 
@@ -185,14 +184,14 @@ class ProductCategoryEditView(APIView):
             try:
                 category = ProductCategory.objects.get(id=id)
             except ProductCategory.DoesNotExist:
-                return Response({"message": "Category not found"}, status=status.HTTP_404_NOT_FOUND)
+                return Response(response_ERROR("Category not found"), status=status.HTTP_404_NOT_FOUND)
             serializer = ProductCategorySerializer(
                 instance=category, data=request.data)
             if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        return Response({"detail": "You do not have permission to perform this action."}, status=status.HTTP_403_FORBIDDEN)
+                return Response(response_OK(serializer.data), status=status.HTTP_200_OK)
+            return Response(response_ERROR(serializer.errors), status=status.HTTP_400_BAD_REQUEST)
+        return Response(response_ERROR("You do not have permission to perform this action."), status=status.HTTP_403_FORBIDDEN)
 
     # delete category by id
     def delete(self, request, id):
@@ -200,26 +199,10 @@ class ProductCategoryEditView(APIView):
             try:
                 category = ProductCategory.objects.get(id=id)
                 category.delete()
-                return Response(status=status.HTTP_204_NO_CONTENT)
+                return Response(response_OK("category deleted"), status=status.HTTP_204_NO_CONTENT)
             except ProductCategory.DoesNotExist:
-                return Response({"message": "Category not found"}, status=status.HTTP_404_NOT_FOUND)
+                return Response(response_ERROR("Category not found"), status=status.HTTP_404_NOT_FOUND)
             except ProtectedError as e:
                 data = [product.code for product in e.protected_objects]
-                return Response({"message": e.args[0], "products": data}, status=status.HTTP_406_NOT_ACCEPTABLE)
-        return Response({"detail": "You do not have permission to perform this action."}, status=status.HTTP_403_FORBIDDEN)
-
-# class CategoryShowProductsView(APIView):
-#     permission_classes = [IsAuthenticated]
-#     def get(self, request, id):
-#         try:
-#             if request.user.is_superuser:
-#                 print(True)
-#                 data = Products.objects.filter(category=id)
-#             else:
-#                 data = Products.objects.filter(category=id, is_active=True)
-#                 print(data)
-#             serializer = SimpleProductShowSerializer(data, many=True)
-#             return Response(serializer.data, status=status.HTTP_200_OK)
-
-#         except:
-#             return Response({"message": "Category not found"}, status=status.HTTP_404_NOT_FOUND)
+                return Response(response_ERROR({"message": e.args[0], "products": data}), status=status.HTTP_406_NOT_ACCEPTABLE)
+        return Response(response_ERROR("You do not have permission to perform this action."), status=status.HTTP_403_FORBIDDEN)

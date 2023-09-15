@@ -15,7 +15,6 @@ class ImageProductSerializer(ModelSerializer):
     class Meta:
         model = ImageProduct
         fields = ("image",)
-        # fields = ("id", "product", "image")
 
 
 # CREATE AND SHOW PRODUCTS
@@ -78,11 +77,3 @@ class SimpleProductShowSerializer(ModelSerializer):
     class Meta:
         model = Products
         fields = ("name", "code", "price", "is_active", "min_count", "desc")
-
-
-# class OneCategorySerializer(ModelSerializer):
-#     products = SimpleProductShowSerializer(many=True)
-
-#     class Meta:
-#         model = ProductCategory
-#         fields = ("id", "name", "products")
