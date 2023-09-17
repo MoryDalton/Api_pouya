@@ -177,7 +177,7 @@ class LogOutUserView(APIView):
     def post(self, request):
         serializer = LogOutUserSerializer(data=request.data)
         if serializer.is_valid():
-            refresh_token = serializer.data["refresh"]
+            refresh_token = serializer.validated_data["refresh"]
             try:
                 token = RefreshToken(refresh_token)
                 token.blacklist()
@@ -186,7 +186,6 @@ class LogOutUserView(APIView):
                 return Response(response_ERROR(str(e)), status=status.HTTP_400_BAD_REQUEST)
 
         return Response(response_ERROR([f"[{key}]: {value[0]}" for key, value in serializer.errors.items()]), status=status.HTTP_400_BAD_REQUEST)
-# BlacklistedToken.objects.filter(token__expires_at__lt=datetime.now()).delete()
 
 
 # loging view
@@ -283,3 +282,10 @@ class ValidNumberDeleteView(APIView):
 
         except:
             return Response(response_ERROR("User not found"), status=status.HTTP_404_NOT_FOUND)
+
+
+class CheckTokenView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        return Response(response_OK("token OK"), status=status.HTTP_200_OK)

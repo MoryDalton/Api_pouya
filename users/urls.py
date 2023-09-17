@@ -1,7 +1,7 @@
 from django.urls import path
 from users.views import (CreateUserShow, LogOutUserView, CustomTokenObtainPairView, EditUserShow,
                          UserShowAllView, UserChangePasswordView, ShowOneUserView, UserActiveView, UserDeactiveView,
-                         ValidNumbersView, ValidNumberEditView, ValidNumberDeleteView, UserForgetPasswordView)
+                         ValidNumbersView, ValidNumberEditView, ValidNumberDeleteView, UserForgetPasswordView, CheckTokenView)
 
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -20,6 +20,7 @@ urlpatterns = [
     path("validnumbers/", ValidNumbersView.as_view(), name="show_and_add_valid_users"),
     path("validnumbers/edit/<str:phone>/", ValidNumberEditView.as_view(), name="edit_valid_user"),
     path("validnumbers/delete/<str:phone>/", ValidNumberDeleteView.as_view(), name="delete_valid_user"),
-    path("<str:phone>/", ShowOneUserView.as_view(), name="show_one_user"),
+    path("check_token/", CheckTokenView.as_view(), name="check_expire_token"),
+    path("<str:phone>/", ShowOneUserView.as_view(), name="show_one_user")
 
 ]
