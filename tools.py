@@ -1,11 +1,22 @@
 from random import randint
 
 from django.utils.timezone import now, timedelta
+from django.http import HttpRequest
 
 from users.models import Sms
 import keys
 
-from kavenegar import KavenegarAPI, APIException, HTTPException
+from kavenegar import KavenegarAPI
+
+
+def response_OK(detail):
+    return {"isStatus": True, "detail": detail}
+
+
+def response_ERROR(detail):
+    if type(detail) != list:
+        return {"isStatus": False, "detail": [detail]}
+    return {"isStatus": False, "detail": detail}
 
 
 # check sms before send:
@@ -65,3 +76,17 @@ def send_message(phone: str):
         'type': 'sms'
     }
     api.verify_lookup(params)
+
+
+# pagination
+def paginator_next_previous_page(request, paginator, page):
+    next = ''
+    previous = ''
+    all_pages = paginator.num_pages
+    count = paginator.count
+    if 1 <= page < all_pages:
+        next = HttpRequest.build_absolute_uri(request, f'?page={page+1}')
+    if 1 < page <= all_pages:
+        previous = HttpRequest.build_absolute_uri(request, f'?page={page-1}')
+
+    return (count, all_pages, next, previous)

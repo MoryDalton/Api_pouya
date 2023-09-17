@@ -29,7 +29,7 @@ class CustomUserManager(BaseUserManager):
 # user model
 class Users(AbstractBaseUser, PermissionsMixin):
     phone = models.CharField(unique=True, null=False, max_length=11)
-    email = models.EmailField(unique=True, null=False)
+    email = models.EmailField(null=True, blank=True)
     name = models.CharField(max_length=100, null=True, blank=True)
     family = models.CharField(max_length=100, null=True, blank=True)
     store = models.CharField(max_length=255, null=True)
@@ -61,7 +61,6 @@ class Sms(models.Model):
     class Meta:
         verbose_name = "Sms"
         verbose_name_plural = "Sms"
-
 
 # model for email verify:
 class EmailVerify(models.Model):

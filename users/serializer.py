@@ -17,9 +17,9 @@ class CustomValidation(APIException):
         if status_code is not None:
             self.status_code = status_code
         if detail is not None:
-            self.detail = {"isStatus": st, field: detail}
+            self.detail = {field: detail}
         else:
-            self.detail = {"isStatus": st, field: self.default_detail}
+            self.detail = {field: self.default_detail}
 
 
 class UserShowSerializer(ModelSerializer):
@@ -98,10 +98,10 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         try:
             user = Users.objects.get(phone=validated_data["phone"])
 
-        except Users.DoesNotExist:
+        except:
             raise CustomValidation("No active account found with the given credentials",
                                    "detail", False, status_code=status.HTTP_401_UNAUTHORIZED)
-
+        
         if user.is_active:
             d = {"isStatus": True}
             data = super(CustomTokenObtainPairSerializer,

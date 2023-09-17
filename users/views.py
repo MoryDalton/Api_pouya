@@ -17,8 +17,7 @@ from users.serializer import CustomTokenObtainPairSerializer
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
-import sms
-from test_response import response_OK, response_ERROR
+from tools import response_OK, response_ERROR, send_message, check_before_send, check_code
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -56,7 +55,7 @@ class CreateUserShow(APIView):
 
             # if code is in parameters:
             if code:
-                response = sms.check_code(
+                response = check_code(
                     phone=serializer.validated_data["phone"], code=code)
 
                 if response[0]:
@@ -65,18 +64,18 @@ class CreateUserShow(APIView):
                 return Response(response_ERROR(response[1]), status=status.HTTP_400_BAD_REQUEST)
 
             # first time call create user:
-            res = sms.check_before_send(
+            res = check_before_send(
                 phone=serializer.validated_data["phone"])
 
             if res:
-                t_send_email = Process(target=sms.send_message, args=(
+                t_send_email = Process(target=send_message, args=(
                     serializer.validated_data["phone"],))
                 t_send_email.start()
                 return Response(response_OK("sms sent"), status=status.HTTP_200_OK)
 
             return Response(response_ERROR("please try after 2 minutes."), status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(response_ERROR(serializer.errors), status=status.HTTP_400_BAD_REQUEST)
+        return Response(response_ERROR([f"[{key}]: {value[0]}" for key, value in serializer.errors.items()]), status=status.HTTP_400_BAD_REQUEST)
 
 
 # show one user
@@ -111,7 +110,7 @@ class EditUserShow(APIView):
             if serializer.is_valid():
                 serializer.save()
                 return Response(response_OK(serializer.data), status=status.HTTP_200_OK)
-            return Response(response_ERROR(serializer.errors), status=status.HTTP_400_BAD_REQUEST)
+            return Response(response_ERROR([f"[{key}]: {value[0]}" for key, value in serializer.errors.items()]), status=status.HTTP_400_BAD_REQUEST)
         return Response(response_ERROR("not allowed."), status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -133,7 +132,7 @@ class UserChangePasswordView(APIView):
             if serializer.is_valid():
                 serializer.save()
                 return Response(response_OK("password changed."), status=status.HTTP_200_OK)
-            return Response(response_ERROR(serializer.errors), status=status.HTTP_400_BAD_REQUEST)
+            return Response(response_ERROR([f"[{key}]: {value[0]}" for key, value in serializer.errors.items()]), status=status.HTTP_400_BAD_REQUEST)
         return Response(response_ERROR("not allowed."), status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -150,7 +149,7 @@ class UserForgetPasswordView(APIView):
             # if code in parameters:-> check code and set password:
             code = request.GET.get("code")
             if code:
-                response = sms.check_code(phone=phone, code=code)
+                response = check_code(phone=phone, code=code)
                 if response[0]:
 
                     token = get_tokens_for_user(user)
@@ -159,9 +158,9 @@ class UserForgetPasswordView(APIView):
                 return Response(response_ERROR(response[1]), status=status.HTTP_400_BAD_REQUEST)
 
             # with no parameters:-> check for send sms:
-            res = sms.check_before_send(phone=phone)
+            res = check_before_send(phone=phone)
             if res:
-                t_send_email = Process(target=sms.send_message, args=(phone,))
+                t_send_email = Process(target=send_message, args=(phone,))
                 t_send_email.start()
                 return Response(response_OK("sms sent"), status=status.HTTP_200_OK)
             return Response(response_ERROR("please try after 2 minutes."), status=status.HTTP_400_BAD_REQUEST)
@@ -174,6 +173,7 @@ class UserForgetPasswordView(APIView):
 class LogOutUserView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(request_body=LogOutUserSerializer)
     def post(self, request):
         serializer = LogOutUserSerializer(data=request.data)
         if serializer.is_valid():
@@ -185,7 +185,7 @@ class LogOutUserView(APIView):
             except Exception as e:
                 return Response(response_ERROR(str(e)), status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(response_ERROR(serializer.errors), status=status.HTTP_400_BAD_REQUEST)
+        return Response(response_ERROR([f"[{key}]: {value[0]}" for key, value in serializer.errors.items()]), status=status.HTTP_400_BAD_REQUEST)
 # BlacklistedToken.objects.filter(token__expires_at__lt=datetime.now()).delete()
 
 
@@ -244,7 +244,7 @@ class ValidNumbersView(APIView):
             serializer.save()
             return Response(response_OK("phone added"), status=status.HTTP_201_CREATED)
 
-        return Response(response_ERROR(serializer.errors), status=status.HTTP_400_BAD_REQUEST)
+        return Response(response_ERROR([f"[{key}]: {value[0]}" for key, value in serializer.errors.items()]), status=status.HTTP_400_BAD_REQUEST)
 
 
 # edit valid number : admin
@@ -259,7 +259,7 @@ class ValidNumberEditView(APIView):
             if serializer.is_valid():
                 serializer.save()
                 return Response(response_OK(serializer.data), status=status.HTTP_200_OK)
-            return Response(response_ERROR(serializer.errors), status=status.HTTP_400_BAD_REQUEST)
+            return Response(response_ERROR([f"[{key}]: {value[0]}" for key, value in serializer.errors.items()]), status=status.HTTP_400_BAD_REQUEST)
 
         except:
             return Response(response_ERROR("User not found"), status=status.HTTP_404_NOT_FOUND)
@@ -279,7 +279,7 @@ class ValidNumberDeleteView(APIView):
                 user.save()
             except:
                 pass
-            return Response(response_OK("phone deleted"), status=status.HTTP_204_NO_CONTENT)
+            return Response(response_OK("phone deleted"), status=status.HTTP_200_OK)
 
         except:
             return Response(response_ERROR("User not found"), status=status.HTTP_404_NOT_FOUND)

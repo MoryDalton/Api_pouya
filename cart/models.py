@@ -9,7 +9,7 @@ from django_jalali.db import models as jmodels
 
 # cart model
 class Cart(models.Model):
-    user = models.ForeignKey(Users, to_field="phone",on_delete=models.CASCADE, related_name="cart")
+    user = models.ForeignKey(Users, to_field="phone", on_delete=models.CASCADE, related_name="cart")
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, unique=True)
     created_date = jmodels.jDateTimeField(auto_now_add=True)
     done = models.BooleanField(default=False)
